@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- 
-from flask import Flask, render_template, session, redirect, url_for, flash, json
+from flask import Flask, render_template, session, redirect, url_for, json
 from flask_bootstrap import Bootstrap
 from flask_wtf import Form
 from wtforms import TextAreaField, SubmitField, IntegerField, SelectField, StringField
@@ -9,6 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 from flask_script import Shell, Manager
 import hashlib
+import requests
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -17,7 +18,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] =\
 			'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-app.config['SECRET_KEY'] = '2=ls-5(h2b-)e8*b%ng=+yma7pqjkrq_k=ujgz(4e4%mkr4#8%'
+app.config['SECRET_KEY'] = os.urandom(24)
 
 db = SQLAlchemy(app)
 bootstrap = Bootstrap(app)
@@ -25,7 +26,14 @@ manager = Manager(app)
 
 secret = 'eJSN0hh43LC0qDWvoYnOXfvfkOZ7yoBjq'
 shop_id = 300969
-currencys = dict(card_uah=980, card_rub=643)
+currencys = dict(w1_uah=980, card_rub=643)
+
+
+class PayForm(Form):
+	amount = IntegerField('Amount', validators=[Required()])
+	currency = SelectField('Currency', choices=[('w1_uah', 'UAH'),('card_rub', 'RUB')], validators=[Required()])
+	description = TextAreaField('Description', validators=[Required()])
+	submit = SubmitField('Submit')
 
 
 class Order(db.Model):
@@ -43,13 +51,6 @@ class Order(db.Model):
 
 	def __repr__(self):
 		return '%s' % self.id
-
-
-class PayForm(Form):
-	amount = IntegerField('Amount', validators=[Required()])
-	currency = SelectField('Currency', choices=[('card_uah', 'UAH'),('card_rub', 'RUB')], validators=[Required()])
-	description = TextAreaField('Description', validators=[Required()])
-	submit = SubmitField('Submit')
 
 
 def _get_sign(request, keys_required, secret):
@@ -71,24 +72,27 @@ def index():
 		db.session.add(order)
 		db.session.commit()
 		if form.currency.data == 'card_rub':
-			request = dict(shop_id=shop_id, amount=form.amount.data, shop_invoice_id=order.id, currency=currencys[form.currency.data])
+			request = dict(shop_id=shop_id, amount=form.amount.data, shop_invoice_id=order.id, \
+				currency=currencys[form.currency.data])
 			keys_required = ("shop_id", "amount", "currency", "shop_invoice_id")
 			sign = _get_sign(request, keys_required, secret)
 			session['sign']=sign
 			url = 'https://tip.pay-trio.com/ru/' + '?amount=' + str(form.amount.data) + '&currency=' + str(currencys[form.currency.data]) + \
 			'&shop_id=' + str(shop_id) + '&shop_invoice_id=' + str(order.id) + '&sign=' + str(sign)
-			# return redirect(url)
+			return redirect(url)
 
-		if form.currency.data == 'card_uah':
-			request = dict(amount=form.amount.data, currency=currencys[form.currency.data], payway=form.currency.data, shop_id=shop_id, shop_invoice_id=order.id)
+		if form.currency.data == 'w1_uah':
+			request = dict(amount=form.amount.data, currency=currencys[form.currency.data], \
+				payway=form.currency.data, shop_id=shop_id, shop_invoice_id=order.id)
 			keys_required = ("amount", "currency", "payway", "shop_id", "shop_invoice_id")
 			sign = _get_sign(request, keys_required, secret)
 			session['sign']=sign
 			request['sign'] = sign
 			request['description'] = form.description.data
-			request_to_api = json.dumps(request, sort_keys=True, indent=4)
-			session['request_to_api'] = request_to_api
-			print(request_to_api)
+			url = "https://central.pay-trio.com/invoice"
+			header = {'Content-type': 'application/json'}
+			request_to_api = requests.post(url, request, headers)
+			session['response'] = request_to_api.text
 
 		return redirect(url_for('index'))
 	return render_template('payform.html', form=form, order=order, sign=session.get('sign'), request_to_api=session.get('request_to_api'))
@@ -97,7 +101,6 @@ def index():
 @app.errorhandler(404)
 def page_not_found(e):
 	return render_template('404.html'), 404
-
 
 if __name__ == '__main__':
 	app.run(debug=True)
