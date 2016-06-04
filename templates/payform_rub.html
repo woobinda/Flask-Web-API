@@ -7,13 +7,16 @@
     <h1>Orders: {{order}} </h1>
 </div>
 	<form name="Pay" method="post" action="https://tip.pay-trio.com/ru/" accept-charset="UTF-8">
-		{{ form.csrf_token }}
 		<input type="hidden" name="amount" value="{{amount}}" />
 		<input type="hidden" name="currency" value="{{currency}}" />
 		<input type="hidden" name="shop_id" value="{{shop_id}}" />
 		<input type="hidden" name="sign" value="{{sign}}" />
 		<input type="hidden" name="shop_invoice_id" value="{{shop_invoice_id}}" />
 		<input type="hidden" name="description" value="{{description}}"/>
+		<input type="hidden" name="paymethod_id" value="{{paymethod_id}}"/>
+		<input type="hidden" name="payway" value="{{payway}}"/>
+		<input type="hidden" name="failed_url" value="{{failed_url}}"/>
+		<input type="hidden" name="success_url" value="{{success_url}}"/>
 		<input type="submit" value="Continue" />
 	</form>
 {% endblock %}

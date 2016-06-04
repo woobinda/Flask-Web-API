@@ -73,12 +73,12 @@ def index():
 		db.session.add(order)
 		db.session.commit()
 		if form.currency.data == 'card_rub':
-			request = dict(shop_id=shop_id, amount=form.amount.data, shop_invoice_id=order.id, \
-				currency=currencys[form.currency.data])
+			request = dict(shop_id=shop_id, amount=form.amount.data, shop_invoice_id=order.id, currency=currencys[form.currency.data])
 			keys_required = ("shop_id", "amount", "currency", "shop_invoice_id")
 			sign = _get_sign(request, keys_required, secret)
 			return render_template('payform_rub.html', order=order, amount=str(form.amount.data), currency=str(currencys[form.currency.data]), \
-				shop_id=str(shop_id), shop_invoice_id=str(order.id), sign=str(sign), description=str(form.description.data))
+				shop_id=str(shop_id), shop_invoice_id=str(order.id), sign=str(sign), description=str(form.description.data), paymethod_id=1, payway='card_rub', \
+				failed_url = "https://tip.pay-trio.com/failed/", success_url= "https://tip.pay-trio.com/success/")
 
 		if form.currency.data == 'w1_uah':
 			request = dict(amount=form.amount.data, currency=currencys[form.currency.data], \
@@ -92,8 +92,8 @@ def index():
 			request_to_api = requests.post(url, data=json.dumps(request), headers=headers)
 			response_from_api = request_to_api.text
 			data = response_from_api['data']['data']
-			request_2 =  requests.post(url, data=response_from_api, headers=headers)
-			print(request_2.text)
+			request2 = requests.post("https://wl.walletone.com/checkout/checkout/Index", data=json.dumps(data))
+			print(request2.text)
 			"""
 			return render_template('payform_uah.html', \
 				WMI_CURRENCY_ID=str(data['WMI_CURRENCY_ID']), \
@@ -102,10 +102,11 @@ def index():
 			    WMI_PAYMENT_AMOUNT=str(data['WMI_PAYMENT_AMOUNT']), \
 			    WMI_PAYMENT_NO=str(data['WMI_PAYMENT_NO']), \
 			    WMI_PTENABLED = str(data['WMI_PTENABLED']), \
-				WMI_SIGNATURE = str(data['WMI_SIGNATURE']) \
+				WMI_SIGNATURE = str(data['WMI_SIGNATURE']), \
 				WMI_SUCCESS_URL = str(data['WMI_SUCCESS_URL'])) \
 			"""
-
+			
+		return redirect(url_for('index'))
 	return render_template('payform_index.html', form=form, order=order)
 
 
