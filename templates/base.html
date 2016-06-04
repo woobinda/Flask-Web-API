@@ -1,11 +1,11 @@
 {% extends "bootstrap/base.html" %}
 
-{% block title %}Flasky{% endblock %}
-
+{% block title %}Title{% endblock %}
 {% block scripts %}
 {{ super() }}
 <link rel="shortcut_icon" href="{{ url_for('static', filename = 'favicon.ico') }}" type="image/x-icon">
 <link rel="icon" href="{{ url_for('static', filename = 'favicon.ico') }}" type="image/x-icon">
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }} ">
 {% endblock %}
 
 {% block navbar %}
@@ -27,9 +27,6 @@
 
 {% block content %}
 <div class="container">
-    {% for message in get_flashed_messages() %}
-        <h1>{{message}}</h1>
-    {% endfor %}
     {% block page_content %}{% endblock %}
 </div>
 {% endblock %}

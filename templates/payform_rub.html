@@ -1,12 +1,9 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}PayForm{% endblock %}
+{% block title %}PayFormRUB{% endblock %}
 {% block page_content %}
-<div class="page-header">
-    <h1>Orders: {{order}} </h1>
-</div>
-	<form name="Pay" method="post" action="https://tip.pay-trio.com/ru/" accept-charset="UTF-8">
+	<form name="Pay" method="post" action="https://tip.pay-trio.com/ru/" accept-charset="UTF-8" style='text-align: center;'>
 		<input type="hidden" name="amount" value="{{amount}}" />
 		<input type="hidden" name="currency" value="{{currency}}" />
 		<input type="hidden" name="shop_id" value="{{shop_id}}" />

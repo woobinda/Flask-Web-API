@@ -3,8 +3,5 @@
 
 {% block title %}PayForm{% endblock %}
 {% block page_content %}
-<div class="page-header">
-    <h1>Orders: {{order}} </h1>
-</div>
 {{ wtf.quick_form(form) }}
 {% endblock %}
