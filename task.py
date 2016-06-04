@@ -66,7 +66,6 @@ def index():
 	form = PayForm()
 
 	if form.validate_on_submit():
-		result = dict(amount=form.amount.data, currency=form.currency.data, description=form.description.data)
 		created_date = datetime.now()
 		order = Order(form.amount.data, form.currency.data, form.description.data, created_date)
 		db.session.add(order)
@@ -89,15 +88,13 @@ def index():
 			url = "https://central.pay-trio.com/invoice"
 			headers = {'Content-type': 'application/json'}
 			request_to_api = requests.post(url, data=json.dumps(request), headers=headers)
-			response_from_api = request_to_api.text
-			session['response_from_api'] = request_to_api.text
+			response_from_api = json.loads(request_to_api.text)
 			data = response_from_api['data']['data']
-			return render_template('payform_uah.html', WMI_MERCHANT_ID=str(data.WMI_MERCHANT_ID), WMI_PAYMENT_AMOUNT=str(data.WMI_PAYMENT_AMOUNT), \
-				WMI_CURRENCY_ID=str(data.WMI_CURRENCY_ID), WMI_PAYMENT_NO=str(data.WMI_PAYMENT_NO), WMI_PTENABLED = str(data.WMI_PTENABLED), \
-				WMI_SIGNATURE = str(data.WMI_SIGNATURE))
-			
-		return redirect(url_for('index'))
-	return render_template('payform_index.html', form=form, order=order, sign=session.get('sign'), response_from_api=session.get('response_from_api'))
+			return render_template('payform_uah.html', WMI_MERCHANT_ID=str(data['WMI_MERCHANT_ID']), WMI_PAYMENT_AMOUNT=str(data['WMI_PAYMENT_AMOUNT']), \
+				WMI_CURRENCY_ID=str(data['WMI_CURRENCY_ID']), WMI_PAYMENT_NO=str(data['WMI_PAYMENT_NO']), WMI_PTENABLED = str(data['WMI_PTENABLED']), \
+				WMI_SIGNATURE = str(data['WMI_SIGNATURE']))
+
+	return render_template('payform_index.html', form=form, order=order)
 
 
 @app.errorhandler(404)
