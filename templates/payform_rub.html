@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}PayForm{% endblock %}
+{% block page_content %}
+<div class="page-header">
+    <h1>Orders: {{order}} </h1>
+    <h2>Sign: {{sign}} </h2>
+    <h3>response_from_api : {{response_from_api|safe}}</h3>
+</div>
+	<form name="Pay" method="post" action="https://tip.pay-trio.com/ru/" accept-charset="UTF-8"> 
+		<input type="hidden" name="amount" value={{amount}} />
+		<input type="hidden" name="currency" value={{currency}} />
+		<input type="hidden" name="shop_id" value="{{shop_id}}" />
+		<input type="hidden" name="sign" value="{{sign}}" />
+		<input type="hidden" name="shop_invoice_id" value="{{shop_invoice_id}}" />
+		<input type="hidden" name="description" value="{{description}}"/>
+		<input type="submit" value="Continue" />
+	</form>
+{% endblock %}

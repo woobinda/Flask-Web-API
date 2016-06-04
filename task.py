@@ -76,31 +76,34 @@ def index():
 				currency=currencys[form.currency.data])
 			keys_required = ("shop_id", "amount", "currency", "shop_invoice_id")
 			sign = _get_sign(request, keys_required, secret)
-			session['sign']=sign
-			url = 'https://tip.pay-trio.com/ru/' + '?amount=' + str(form.amount.data) + '&currency=' + str(currencys[form.currency.data]) + \
-			'&shop_id=' + str(shop_id) + '&shop_invoice_id=' + str(order.id) + '&sign=' + str(sign)
-			return redirect(url)
+			return render_template('payform_rub.html', amount=str(form.amount.data), currency=str(currencys[form.currency.data]), \
+				shop_id=str(shop_id), shop_invoice_id=str(order.id), sign=str(sign), description=str(form.description.data))
 
 		if form.currency.data == 'w1_uah':
 			request = dict(amount=form.amount.data, currency=currencys[form.currency.data], \
 				payway=form.currency.data, shop_id=shop_id, shop_invoice_id=order.id)
 			keys_required = ("amount", "currency", "payway", "shop_id", "shop_invoice_id")
 			sign = _get_sign(request, keys_required, secret)
-			session['sign']=sign
 			request['sign'] = sign
 			request['description'] = form.description.data
 			url = "https://central.pay-trio.com/invoice"
-			header = {'Content-type': 'application/json'}
-			request_to_api = requests.post(url, request, headers)
-			session['response'] = request_to_api.text
-
+			headers = {'Content-type': 'application/json'}
+			request_to_api = requests.post(url, data=json.dumps(request), headers=headers)
+			response_from_api = request_to_api.text
+			session['response_from_api'] = request_to_api.text
+			data = response_from_api['data']['data']
+			return render_template('payform_uah.html', WMI_MERCHANT_ID=str(data.WMI_MERCHANT_ID), WMI_PAYMENT_AMOUNT=str(data.WMI_PAYMENT_AMOUNT), \
+				WMI_CURRENCY_ID=str(data.WMI_CURRENCY_ID), WMI_PAYMENT_NO=str(data.WMI_PAYMENT_NO), WMI_PTENABLED = str(data.WMI_PTENABLED), \
+				WMI_SIGNATURE = str(data.WMI_SIGNATURE))
+			
 		return redirect(url_for('index'))
-	return render_template('payform.html', form=form, order=order, sign=session.get('sign'), request_to_api=session.get('request_to_api'))
+	return render_template('payform_index.html', form=form, order=order, sign=session.get('sign'), response_from_api=session.get('response_from_api'))
 
 
 @app.errorhandler(404)
 def page_not_found(e):
 	return render_template('404.html'), 404
+
 
 if __name__ == '__main__':
 	app.run(debug=True)
