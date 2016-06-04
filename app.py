@@ -64,9 +64,9 @@ def _get_sign(request, keys_required, secret):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = PayForm()
-    logging.info('---Start---')
 
     if form.validate_on_submit():
+        logging.info('---Start---')
         created_date = datetime.now()
         order = Order(form.amount.data, form.currency.data, form.description.data, created_date)
         db.session.add(order)
@@ -89,6 +89,7 @@ def index():
                                    success_url="https://tip.pay-trio.com/success/")
 
         if form.currency.data == 'w1_uah':
+            logging.info('---Start---')
             request = dict(amount=form.amount.data, currency=currencys[form.currency.data],
                            payway=form.currency.data, shop_id=shop_id, shop_invoice_id=order.id)
             app.logger.info('Currency is ( %s)' % form.currency.data)
