@@ -2,19 +2,19 @@
 from flask import Flask, render_template, session, redirect, url_for, json
 from flask_bootstrap import Bootstrap
 from flask_wtf import Form
-from flask_wtf.csrf import CsrfProtect
 from wtforms import TextAreaField, SubmitField, IntegerField, SelectField, StringField
 from wtforms.validators import Required, Regexp
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-import os
 from flask_script import Shell, Manager
+import os
 import hashlib
 import requests
+import logging
 
-basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
+basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = \
     'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
@@ -22,7 +22,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SECRET_KEY'] = os.urandom(24)
 
 db = SQLAlchemy(app)
-csrf = CsrfProtect()
 bootstrap = Bootstrap(app)
 manager = Manager(app)
 
@@ -65,18 +64,23 @@ def _get_sign(request, keys_required, secret):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = PayForm()
+    logging.info('---Start---')
 
     if form.validate_on_submit():
         created_date = datetime.now()
         order = Order(form.amount.data, form.currency.data, form.description.data, created_date)
         db.session.add(order)
         db.session.commit()
+        app.logger.info('Create a order (id %s)' % order.id)
 
         if form.currency.data == 'card_rub':
+            logging.info('Starting redirect')
             request = dict(shop_id=shop_id, amount=form.amount.data, shop_invoice_id=order.id,
                            currency=currencys[form.currency.data])
+            app.logger.debug('Choicen payway is ( %s)' % form.currency.data)
             keys_required = ("shop_id", "amount", "currency", "shop_invoice_id")
             sign = _get_sign(request, keys_required, secret)
+            app.logger.info('Generate a HTML form')
             return render_template('payform_rub.html', amount=str(form.amount.data),
                                    currency=str(currencys[form.currency.data]), shop_id=str(shop_id),
                                    shop_invoice_id=str(order.id), sign=str(sign),
@@ -87,6 +91,7 @@ def index():
         if form.currency.data == 'w1_uah':
             request = dict(amount=form.amount.data, currency=currencys[form.currency.data],
                            payway=form.currency.data, shop_id=shop_id, shop_invoice_id=order.id)
+            app.logger.info('Currency is ( %s)' % form.currency.data)
             keys_required = ("amount", "currency", "payway", "shop_id", "shop_invoice_id")
             sign = _get_sign(request, keys_required, secret)
             request['sign'] = sign
@@ -95,8 +100,10 @@ def index():
             headers = {'Content-type': 'application/json'}
             request_to_api = requests.post(url, data=json.dumps(request), headers=headers)
             response_from_api = json.loads(request_to_api.text)
+            app.logger.debug('Response_from_api result is ( %s)' % response_from_api['result'])
             if response_from_api['result'] == 'ok':
                 data = response_from_api['data']['data']
+                app.logger.info('Generate a HTML form')
                 return render_template('payform_uah.html', WMI_CURRENCY_ID=str(data['WMI_CURRENCY_ID']),
                                        WMI_FAIL_URL=str(data['WMI_FAIL_URL']),
                                        WMI_MERCHANT_ID=str(data['WMI_MERCHANT_ID']),
@@ -105,14 +112,18 @@ def index():
                                        WMI_PTENABLED=str(data['WMI_PTENABLED']),
                                        WMI_SIGNATURE=str(data['WMI_SIGNATURE']),
                                        WMI_SUCCESS_URL=str(data['WMI_SUCCESS_URL']))
-
+    else:
+        app.logger.debug('Validation Form Error')
     return render_template('payform_index.html', form=form)
 
 
 @app.errorhandler(404)
 def page_not_found(e):
+    app.logger.debug('404 Not Found')
     return render_template('404.html'), 404
 
 
 if __name__ == '__main__':
+    logging.basicConfig(filename='app.log', filemode='w', level=logging.DEBUG)
+    logging.debug('This message should go to the log file')
     app.run(debug=True)
