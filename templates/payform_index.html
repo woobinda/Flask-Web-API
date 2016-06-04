@@ -5,8 +5,6 @@
 {% block page_content %}
 <div class="page-header">
     <h1>Orders: {{order}} </h1>
-    <h2>Sign: {{sign}} </h2>
-    <h3>response_from_api : {{response_from_api|safe}}</h3>
 </div>
 {{ wtf.quick_form(form) }}
 {% endblock %}
