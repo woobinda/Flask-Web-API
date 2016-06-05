@@ -1,8 +1,15 @@
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
 
+{% import "bootstrap/wtf.html" as wtf %}
 {% block title %}PayFormRUB{% endblock %}
 {% block page_content %}
+
+	<script>
+		window.onload = function(){
+			document.Pay.submit();
+		}
+	</script>
+
 	<form name="Pay" method="post" action="https://tip.pay-trio.com/ru/" accept-charset="UTF-8" style='text-align: center;'>
 		<input type="hidden" name="amount" value="{{amount}}" />
 		<input type="hidden" name="currency" value="{{currency}}" />
