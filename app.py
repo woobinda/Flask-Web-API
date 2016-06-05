@@ -69,17 +69,17 @@ def index():
         order = Order(form.amount.data, form.currency.data, form.description.data, created_date)
         db.session.add(order)  # создание заказа в базе данных
         db.session.commit()
-        app.logger.info('Create a order id %s' % order.id)
+        app.logger.info('Create a order id (%s)' % order.id)
 
         if form.currency.data == 'card_rub':  # выбраный способ оплаты - рубль
             app.logger.info("Payway is '%s'" % form.currency.data)
             request = dict(shop_id=shop_id, amount=form.amount.data, shop_invoice_id=order.id,
                            currency=currencys[form.currency.data])
+            app.logger.info("Request is: %s" % request)
             keys_required = ("shop_id", "amount", "currency", "shop_invoice_id")
             sign = _get_sign(request, keys_required, secret)  # генерация подписи
             app.logger.info('Generate a HTML form for redirect')
-            return render_template('payform_rub.html',
-                                   # генерация HTML формы
+            return render_template('payform_rub.html',  # генерация HTML формы
                                    amount=str(form.amount.data),
                                    currency=str(currencys[form.currency.data]),
                                    shop_id=str(shop_id),
@@ -103,14 +103,15 @@ def index():
             url = "https://central.pay-trio.com/invoice"
             headers = {'Content-type': 'application/json'}
             request_to_api = requests.post(url, data=json.dumps(request), headers=headers)  # POST запрос на API
+            app.logger.info("Request to API is: %s" % request_to_api)
             response_from_api = json.loads(request_to_api.text)  # ответ, полученный от API
-            app.logger.info('API Response result is "%s"' % response_from_api['result'])
+            app.logger.info("Response from API is: %s" % response_from_api)
 
             if response_from_api['result'] == 'ok':  # в случае получения успешного ответа от API
                 data = response_from_api['data']['data']
                 app.logger.info('Generate a HTML form for redirect')
                 return render_template('payform_uah.html',
-                                       # генерация HTML формы на основе данных из полученного API ответа
+                                       # генерация HTML формы на основе данных полученноых в API ответе
                                        WMI_CURRENCY_ID=str(data["WMI_CURRENCY_ID"]),
                                        WMI_FAIL_URL=str(data["WMI_FAIL_URL"]),
                                        WMI_MERCHANT_ID=str(data["WMI_MERCHANT_ID"]),
@@ -121,7 +122,7 @@ def index():
                                        WMI_SUCCESS_URL=str(data["WMI_SUCCESS_URL"]))
             else:
                 app.logger.error(
-                    "API Response result is '%s'" % response_from_api['result'])  # в случае получения ошибки от API
+                    "API Response result is (%s)" % response_from_api['result'])  # в случае получения ошибки от API
                 return render_template('500.html')
     return render_template('payform_index.html', form=form)
 
