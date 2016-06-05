@@ -14,6 +14,7 @@ from flask_wtf import Form
 from wtforms import TextAreaField, SubmitField, IntegerField, SelectField
 from wtforms.validators import Required
 
+
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = \
@@ -31,11 +32,12 @@ shop_id = 300969
 currencys = dict(w1_uah=980, card_rub=643)
 
 
+
 class PayForm(Form):  # форма для ввода данных пользователем
-    amount = IntegerField('тест', validators=[Required()])
-    currency = SelectField('Currency', choices=[('w1_uah', 'UAH'), ('card_rub', 'RUB')], validators=[Required()])
-    description = TextAreaField('Description', validators=[Required()])
-    submit = SubmitField('Submit')
+    amount = IntegerField(u'Сумма оплаты', validators=[Required()])
+    currency = SelectField(u'Валюта оплаты', choices=[('w1_uah', 'UAH'), ('card_rub', 'RUB')], validators=[Required()])
+    description = TextAreaField(u'Описание товара', validators=[Required()])
+    submit = SubmitField(u'Оплатить')
 
 
 class Order(db.Model):  # модель заказа в базе данных
@@ -142,4 +144,4 @@ def internal_server_error(e):
 
 if __name__ == '__main__':
     logging.basicConfig(filename='app.log', filemode='w', level=logging.DEBUG)  # настройка логирования
-    app.run(debug=True)  # настройки ip адреса и порта сервера
+    app.run(host='0.0.0.0', port='7878')  # настройки ip адреса и порта сервера
