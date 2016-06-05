@@ -69,7 +69,7 @@ def index():
         order = Order(form.amount.data, form.currency.data, form.description.data, created_date)
         db.session.add(order)  # создание заказа в базе данных
         db.session.commit()
-        app.logger.info('Create a order id (%s)' % order.id)
+        app.logger.info('Create a order (id = %s)' % order.id)
 
         if form.currency.data == 'card_rub':  # выбраный способ оплаты - рубль
             app.logger.info("Payway is '%s'" % form.currency.data)
@@ -103,7 +103,7 @@ def index():
             url = "https://central.pay-trio.com/invoice"
             headers = {'Content-type': 'application/json'}
             request_to_api = requests.post(url, data=json.dumps(request), headers=headers)  # POST запрос на API
-            app.logger.info("Request to API is: %s" % request_to_api)
+            app.logger.info("Request to API is: %s" % request_to_api.text)
             response_from_api = json.loads(request_to_api.text)  # ответ, полученный от API
             app.logger.info("Response from API is: %s" % response_from_api)
 
