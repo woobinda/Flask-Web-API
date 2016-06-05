@@ -3,8 +3,9 @@ import hashlib
 import logging
 import os
 import requests
-from datetime import datetime
+import unicodedata
 
+from datetime import datetime
 from flask import Flask, render_template, json
 from flask_bootstrap import Bootstrap
 from flask_script import Manager
@@ -31,7 +32,7 @@ currencys = dict(w1_uah=980, card_rub=643)
 
 
 class PayForm(Form):  # форма для ввода данных пользователем
-    amount = IntegerField('Amount', validators=[Required()])
+    amount = IntegerField('тест', validators=[Required()])
     currency = SelectField('Currency', choices=[('w1_uah', 'UAH'), ('card_rub', 'RUB')], validators=[Required()])
     description = TextAreaField('Description', validators=[Required()])
     submit = SubmitField('Submit')
@@ -85,7 +86,7 @@ def index():
                                    shop_id=str(shop_id),
                                    shop_invoice_id=str(order.id),
                                    sign=str(sign),
-                                   description=str(form.description.data),
+                                   description=(form.description.data).encode('ascii','ignore'),
                                    failed_url="https://tip.pay-trio.com/failed/",
                                    success_url="https://tip.pay-trio.com/success/")
 
@@ -102,8 +103,8 @@ def index():
             request["description"] = form.description.data
             url = "https://central.pay-trio.com/invoice"
             headers = {'Content-type': 'application/json'}
+            app.logger.info("Request to API is: %s" % request)
             request_to_api = requests.post(url, data=json.dumps(request), headers=headers)  # POST запрос на API
-            app.logger.info("Request to API is: %s" % request_to_api.text)
             response_from_api = json.loads(request_to_api.text)  # ответ, полученный от API
             app.logger.info("Response from API is: %s" % response_from_api)
 
@@ -138,6 +139,7 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 
+
 if __name__ == '__main__':
-    logging.basicConfig(filename='app.log', filemode='w', asctime=True, level=logging.DEBUG)  # настройка логирования
+    logging.basicConfig(filename='app.log', filemode='w', level=logging.DEBUG)  # настройка логирования
     app.run(debug=True)  # настройки ip адреса и порта сервера
