@@ -140,4 +140,4 @@ def internal_server_error(e):
 
 if __name__ == '__main__':
     logging.basicConfig(filename='app.log', filemode='w', asctime=True, level=logging.DEBUG)  # настройка логирования
-    app.run(host='0.0.0.0', port='7878')  # настройки ip адреса и порта сервера
+    app.run(debug=True)  # настройки ip адреса и порта сервера
