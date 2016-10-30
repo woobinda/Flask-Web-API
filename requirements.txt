@@ -1,0 +1,5 @@
+flask >= 0.11.1
+flask-bootstrap >= 3.3.7.0
+flask-sqlalchemy >= 2.1
+flask-script >= 2.0.5
+flask-wtf >= 0.13.1
