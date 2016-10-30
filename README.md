@@ -1,7 +1,7 @@
-# Flask-Web-API
-Interaction with e-commerce WEB API on Flask framework. 
+# Interaction with e-commerce web Api based on Flask framework.
 
-Contains a form for ordering in online store, and client redirection to the payment service.
+The interaction with the customer online store and payment web API service.
+Contains form from ordering in store, and providing a redirect customers on the payment service page.
 
 To install all dependencies and runn App may use Makefile with sudo console command:
 
