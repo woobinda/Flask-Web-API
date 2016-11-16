@@ -1,8 +1,13 @@
-# Interaction with e-commerce web Api based on Flask.
+# Interaction with e-commerce web Api on Flask framework.
 
 The interaction with the customer online store and payment web API service.
-Contains form from ordering in store, and providing a redirect customers on the payment service page.
+Contains form for ordering in store, and providing a redirect customers to the page of payment service. Redirect url depending on the currency of payment.
+Redirect url depending on the currency (RUB or UAH) of payment.
 
-To install all dependencies and runn App may use Makefile with sudo console command:
+To install all dependencies you can use the console command for Makefile with already installed pip package manager:
 
-$make start
+$make install
+
+To run application you can use the console command for Makefile:
+
+$make run
