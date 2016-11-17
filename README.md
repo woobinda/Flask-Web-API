@@ -8,6 +8,6 @@ To install all dependencies you can use the console command for Makefile with al
 
 $make install
 
-To run application you can use the console command for Makefile:
+To run application with gunicorn web server you can use the console command for Makefile:
 
-$make run
+$make start
